@@ -16,6 +16,7 @@ import pool, { query } from "app/db/pool/pool.js";
 import { createContext } from "app/graphql/context.js";
 import { loggingPlugin } from "app/graphql/plugins/loggingPlugin.js";
 import { typeDefs, resolvers } from "app/graphql/schema.js";
+import { aliasLimit } from "app/graphql/validations/aliasLimit.js";
 import { depthLimit } from "app/graphql/validations/depthLimit.js";
 import { rateLimiter } from "app/middleware/rateLimiter/rateLimiter.js";
 import { logger } from "app/utils/logs/logger.js";
@@ -60,14 +61,23 @@ const server = new ApolloServer({
   validationRules: [
     // Reject deeply nested queries that could trigger expensive DB operations.
     depthLimit(10),
+    // Reject queries with excessive aliases to prevent alias-based batching attacks.
+    aliasLimit(15),
   ],
   formatError: (formattedError) => {
-    // Hide implementation details for unexpected server errors in production.
-    if (isProduction() && formattedError.extensions?.["code"] === "INTERNAL_SERVER_ERROR") {
-      return {
-        message: "Internal server error",
-        extensions: { code: "INTERNAL_SERVER_ERROR" },
-      };
+    if (isProduction()) {
+      // Hide implementation details for unexpected server errors.
+      if (formattedError.extensions?.["code"] === "INTERNAL_SERVER_ERROR") {
+        return {
+          message: "Internal server error",
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        };
+      }
+      // Strip "Did you mean X?" suggestions to prevent schema enumeration.
+      if (formattedError.message.includes("Did you mean")) {
+        const stripped = formattedError.message.split(". Did you mean")[0];
+        return { ...formattedError, message: stripped + "." };
+      }
     }
     return formattedError;
   },

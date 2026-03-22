@@ -18,4 +18,8 @@ export interface GraphQLContext {
   setCookie: (name: string, value: string, options?: CookieOptions) => void;
   /** Clears a response cookie. */
   clearCookie: (name: string) => void;
+  /** Client IP address, used for rate limiting and audit logging. */
+  ip: string | undefined;
+  /** User-Agent header, used for audit logging. */
+  userAgent: string | undefined;
 }

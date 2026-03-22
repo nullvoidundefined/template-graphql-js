@@ -32,5 +32,7 @@ export const createContext: ContextFunction<[ExpressContextFunctionArgument], Gr
       cookies: req.cookies as Record<string, string | undefined>,
       setCookie: (name, value, options) => res.cookie(name, value, options ?? {}),
       clearCookie: (name) => res.clearCookie(name),
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
     };
   };
