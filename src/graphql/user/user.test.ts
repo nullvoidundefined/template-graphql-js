@@ -134,11 +134,7 @@ describe("Query.user", () => {
   it("returns the user when found", async () => {
     const target = makeUser({ email: "target@example.com" });
     vi.mocked(userRepo.findUserById).mockResolvedValueOnce(target);
-    const res = await execute(
-      `query { user(id: "${target.id}") { id email } }`,
-      undefined,
-      target,
-    );
+    const res = await execute(`query { user(id: "${target.id}") { id email } }`, undefined, target);
     expect(res.body).toMatchObject({
       singleResult: { data: { user: { id: target.id, email: target.email } } },
     });
