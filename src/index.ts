@@ -104,7 +104,8 @@ app.get("/health", async (_req, res) => {
   }
 });
 
-const PORT = process.env.PORT ?? 4000;
+const PORT = Number(process.env.PORT) || 4000;
+const HOST = "0.0.0.0";
 
 const entryPath = process.argv[1];
 const isEntryModule =
@@ -114,11 +115,26 @@ const isEntryModule =
 if (isEntryModule) {
   validateEnv();
 
+  pool.on("error", (err) => {
+    logger.error({ err }, "Unexpected idle-client error in pg pool");
+  });
+
+  process.on("uncaughtException", (err) => {
+    logger.fatal({ err }, "Uncaught exception – shutting down");
+    logger.flush();
+    process.exit(1);
+  });
+  process.on("unhandledRejection", (reason) => {
+    logger.fatal({ reason }, "Unhandled rejection – shutting down");
+    logger.flush();
+    process.exit(1);
+  });
+
   query("SELECT NOW()")
     .then(() => logger.info("Connected to database"))
     .catch((err: unknown) => logger.error({ err }, "Database connection failed"));
 
-  await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));
+  await new Promise<void>((resolve) => httpServer.listen({ port: PORT, host: HOST }, resolve));
   logger.info({ port: PORT }, `Server running on http://localhost:${PORT}/graphql`);
 
   async function shutdown(signal: string) {
