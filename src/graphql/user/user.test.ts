@@ -5,10 +5,16 @@ import { typeDefs, resolvers } from "app/graphql/schema.js";
 import * as userRepo from "app/repositories/user/user.js";
 import type { User } from "app/schemas/user.js";
 import type { GraphQLContext } from "app/types/context.js";
-import { mockLogger } from "app/utils/tests/mockLogger.js";
 import { uuid } from "app/utils/tests/uuids.js";
 
-// Mock dependencies before importing the modules that use them
+// vi.hoisted ensures mockLogger is initialized before vi.mock factories run
+const mockLogger = vi.hoisted(() => ({
+  error: vi.fn(),
+  info: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+}));
+
 vi.mock("app/utils/logs/logger.js", () => ({ logger: mockLogger }));
 vi.mock("app/repositories/user/user.js");
 
@@ -117,8 +123,9 @@ describe("Query.user", () => {
   });
 
   it("returns NOT_FOUND when user does not exist", async () => {
+    const user = makeUser();
     vi.mocked(userRepo.findUserById).mockResolvedValueOnce(null);
-    const res = await execute(`query { user(id: "${uuid()}") { id } }`, undefined, makeUser());
+    const res = await execute(`query { user(id: "${user.id}") { id } }`, undefined, user);
     expect(res.body).toMatchObject({
       singleResult: { errors: [{ extensions: { code: "NOT_FOUND" } }] },
     });
@@ -130,7 +137,7 @@ describe("Query.user", () => {
     const res = await execute(
       `query { user(id: "${target.id}") { id email } }`,
       undefined,
-      makeUser(),
+      target,
     );
     expect(res.body).toMatchObject({
       singleResult: { data: { user: { id: target.id, email: target.email } } },
