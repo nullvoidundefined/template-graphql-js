@@ -16,8 +16,7 @@ export const loggingPlugin: ApolloServerPlugin<GraphQLContext> = {
       async willSendResponse({ response }) {
         const duration = Date.now() - start;
         const hasErrors =
-          response.body.kind === "single" &&
-          (response.body.singleResult.errors?.length ?? 0) > 0;
+          response.body.kind === "single" && (response.body.singleResult.errors?.length ?? 0) > 0;
 
         logger.info({ operationName, duration_ms: duration, hasErrors }, "GraphQL request");
       },

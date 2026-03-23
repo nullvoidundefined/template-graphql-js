@@ -42,6 +42,11 @@ export default defineConfig(
     rules: {
       // Run Prettier as an ESLint rule
       "prettier/prettier": "error",
+      // Allow intentionally-unused variables when prefixed with _
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" },
+      ],
       // Require app/ alias; no relative imports (./ or ../)
       "no-restricted-imports": [
         "error",

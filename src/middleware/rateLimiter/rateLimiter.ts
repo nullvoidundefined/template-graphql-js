@@ -1,5 +1,5 @@
-import { GraphQLError } from "graphql";
 import rateLimit from "express-rate-limit";
+import { GraphQLError } from "graphql";
 
 import { isProduction } from "app/config/env.js";
 

@@ -76,7 +76,10 @@ export const userResolvers = {
           parsed.data.password,
         );
         setSessionCookie(context, sessionToken);
-        logger.info({ event: "register", userId: user.id, ip: context.ip, userAgent: context.userAgent }, "User registered");
+        logger.info(
+          { event: "register", userId: user.id, ip: context.ip, userAgent: context.userAgent },
+          "User registered",
+        );
         return user;
       } catch (err: unknown) {
         if ((err as { code?: string })?.code === "23505") {
@@ -107,7 +110,15 @@ export const userResolvers = {
 
       // Use a constant-time message to avoid email enumeration
       if (!userWithHash) {
-        logger.warn({ event: "login_failed", reason: "user_not_found", ip: context.ip, userAgent: context.userAgent }, "Failed login attempt");
+        logger.warn(
+          {
+            event: "login_failed",
+            reason: "user_not_found",
+            ip: context.ip,
+            userAgent: context.userAgent,
+          },
+          "Failed login attempt",
+        );
         throw new GraphQLError("Invalid credentials", {
           extensions: { code: "UNAUTHENTICATED" },
         });
@@ -115,7 +126,16 @@ export const userResolvers = {
 
       const valid = await userRepo.verifyPassword(password, userWithHash.password_hash);
       if (!valid) {
-        logger.warn({ event: "login_failed", reason: "wrong_password", userId: userWithHash.id, ip: context.ip, userAgent: context.userAgent }, "Failed login attempt");
+        logger.warn(
+          {
+            event: "login_failed",
+            reason: "wrong_password",
+            userId: userWithHash.id,
+            ip: context.ip,
+            userAgent: context.userAgent,
+          },
+          "Failed login attempt",
+        );
         throw new GraphQLError("Invalid credentials", {
           extensions: { code: "UNAUTHENTICATED" },
         });
@@ -125,7 +145,10 @@ export const userResolvers = {
       setSessionCookie(context, sessionToken);
 
       const { password_hash: _ph, ...user } = userWithHash;
-      logger.info({ event: "login", userId: user.id, ip: context.ip, userAgent: context.userAgent }, "User logged in");
+      logger.info(
+        { event: "login", userId: user.id, ip: context.ip, userAgent: context.userAgent },
+        "User logged in",
+      );
       return user;
     },
 
@@ -135,7 +158,15 @@ export const userResolvers = {
         await userRepo.deleteSession(rawToken);
       }
       clearSessionCookie(context);
-      logger.info({ event: "logout", userId: context.user?.id ?? null, ip: context.ip, userAgent: context.userAgent }, "User logged out");
+      logger.info(
+        {
+          event: "logout",
+          userId: context.user?.id ?? null,
+          ip: context.ip,
+          userAgent: context.userAgent,
+        },
+        "User logged out",
+      );
       return true;
     },
   },

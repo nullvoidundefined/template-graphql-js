@@ -1,17 +1,16 @@
 import { ApolloServer } from "@apollo/server";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { typeDefs, resolvers } from "app/graphql/schema.js";
+import * as userRepo from "app/repositories/user/user.js";
+import type { User } from "app/schemas/user.js";
+import type { GraphQLContext } from "app/types/context.js";
 import { mockLogger } from "app/utils/tests/mockLogger.js";
 import { uuid } from "app/utils/tests/uuids.js";
 
 // Mock dependencies before importing the modules that use them
 vi.mock("app/utils/logs/logger.js", () => ({ logger: mockLogger }));
 vi.mock("app/repositories/user/user.js");
-
-import * as userRepo from "app/repositories/user/user.js";
-import { typeDefs, resolvers } from "app/graphql/schema.js";
-import type { GraphQLContext } from "app/types/context.js";
-import type { User } from "app/schemas/user.js";
 
 // ---------------------------------------------------------------------------
 // Test server setup
@@ -45,6 +44,8 @@ async function execute(
         cookies,
         setCookie: mockSetCookie,
         clearCookie: mockClearCookie,
+        ip: undefined,
+        userAgent: undefined,
       } satisfies GraphQLContext,
     },
   );

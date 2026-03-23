@@ -14,25 +14,27 @@ import type { GraphQLContext } from "app/types/context.js";
  * @types/express v5 (project) and Apollo Server 4's bundled @types/express v4.
  * Cookie access is exposed via the cookies/setCookie/clearCookie helpers instead.
  */
-export const createContext: ContextFunction<[ExpressContextFunctionArgument], GraphQLContext> =
-  async ({ req, res }) => {
-    let user: GraphQLContext["user"] = null;
+export const createContext: ContextFunction<
+  [ExpressContextFunctionArgument],
+  GraphQLContext
+> = async ({ req, res }) => {
+  let user: GraphQLContext["user"] = null;
 
-    const rawToken = (req.cookies as Record<string, string | undefined>)[SESSION_COOKIE_NAME];
-    if (rawToken) {
-      try {
-        user = await userRepo.getSessionWithUser(rawToken);
-      } catch {
-        // A bad or expired session should not crash the request — just treat as unauthenticated.
-      }
+  const rawToken = (req.cookies as Record<string, string | undefined>)[SESSION_COOKIE_NAME];
+  if (rawToken) {
+    try {
+      user = await userRepo.getSessionWithUser(rawToken);
+    } catch {
+      // A bad or expired session should not crash the request — just treat as unauthenticated.
     }
+  }
 
-    return {
-      user,
-      cookies: req.cookies as Record<string, string | undefined>,
-      setCookie: (name, value, options) => res.cookie(name, value, options ?? {}),
-      clearCookie: (name) => res.clearCookie(name),
-      ip: req.ip,
-      userAgent: req.headers["user-agent"],
-    };
+  return {
+    user,
+    cookies: req.cookies as Record<string, string | undefined>,
+    setCookie: (name, value, options) => res.cookie(name, value, options ?? {}),
+    clearCookie: (name) => res.clearCookie(name),
+    ip: req.ip,
+    userAgent: req.headers["user-agent"],
   };
+};
